@@ -1,12 +1,12 @@
 ;;; el-spice.el --- Extra spice for emacs lisp programming
 ;;
-;;; Copyright (C) 2013 Helmut Eller, Richard Riley, Vedang Manerikar
+;; Copyright (C) 2013 Helmut Eller, Richard Riley, Vedang Manerikar
 ;;
 ;; Author: Vedang Manerikar <vedang.manerikar@gmail.com>
 ;; Created on: 26 Oct 2013
-;; Keywords: configuration
+;; Keywords: languages, extensions
 ;; URL: https://github.com/vedang/el-spice
-;; Package-Requires: ((thingatpt+ "0")) ; update #2171
+;; Package-Requires: ((thingatpt+ "0"))
 ;; Version: 0.2.2
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;; Commentary:
+;;; Commentary:
+;;
 ;; Refer to installation instructions in the README document.
 ;;
 ;;; Code:
@@ -170,3 +171,4 @@ or nil or a positive integer)."
 
 
 (provide 'el-spice)
+;;; el-spice.el ends here
