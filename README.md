@@ -15,7 +15,8 @@
    `C-c p`   - Pretty-print Eval last sexp  
    `M-.`     - Find Definition  
    `M-,`     - Pop tag mark  
-   `C-c <`   - List the callers of this function  
+   `C-c l`   - List the callers of this function  
+   `C-c <`   - Show function callers and callee summary for a package  
    `C-c h`   - Show contextual help  
    `C-c C-z` - easy-key-binding for \*ielm\*   
 

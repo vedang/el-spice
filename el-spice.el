@@ -1,13 +1,13 @@
 ;;; el-spice.el --- Extra spice for emacs lisp programming
 ;;
-;;; Copyright (C) 2013 Vedang Manerikar
+;;; Copyright (C) 2013 Helmut Eller, Richard Riley, Vedang Manerikar
 ;;
 ;; Author: Vedang Manerikar <vedang.manerikar@gmail.com>
 ;; Created on: 26 Oct 2013
 ;; Keywords: configuration
 ;; URL: https://github.com/vedang/el-spice
 ;; Package-Requires: ((thingatpt+)) ; update #2171
-;; Version: 0.2.0
+;; Version: 0.3.0
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,27 +28,27 @@
 ;;; Code:
 
 (require 'eldoc)
+(require 'etags)
 (require 'thingatpt+)
 (require 'list-callers)
 
 
-;; From Emacswiki: Better context help
+;; From Emacswiki: Better context help (Author: Richard Riley)
 
-(defun rgr/toggle-context-help()
+(defun el-toggle-context-help()
   "Turn on or off the context help.
 Note that if ON and you hide the help buffer then you need to
-manually reshow it. A double toggle will make it reappear"
+manually reshow it. A double toggle will make it reappear."
   (interactive)
   (with-current-buffer (help-buffer)
     (unless (local-variable-p 'context-help)
       (set (make-local-variable 'context-help) t))
-    (when (setq context-help (not context-help))
-      (progn
-        (when (not (get-buffer-window (help-buffer)))
-          (display-buffer (help-buffer)))))
+    (when (and (setq context-help (not context-help))
+               (not (get-buffer-window (help-buffer))))
+      (display-buffer (help-buffer)))
     (message "Context help %s" (if context-help "ON" "OFF"))))
 
-(defun rgr/context-help()
+(defun el-context-help()
   "Display function or variable at point in *Help* buffer if visible.
 Default behaviour can be turned off by setting the buffer local
 context-help to false"
@@ -56,46 +56,49 @@ context-help to false"
   (interactive)
   (let ((rgr-symbol (symbol-at-point)))
     (with-current-buffer (help-buffer)
-      (unless (local-variable-p 'context-help)
-        (set (make-local-variable 'context-help) t))
       (when (and context-help (get-buffer-window (help-buffer)) rgr-symbol)
-        (if (fboundp  rgr-symbol)
+        (if (fboundp rgr-symbol)
             (describe-function rgr-symbol)
-          (if (boundp  rgr-symbol) (describe-variable rgr-symbol)))))))
+          (when (boundp rgr-symbol)
+            (describe-variable rgr-symbol)))))))
 
 (defadvice eldoc-print-current-symbol-info
   (around eldoc-show-c-tag disable)
   (cond
-   ((eq major-mode 'emacs-lisp-mode) (rgr/context-help) ad-do-it)
-   ((eq major-mode 'lisp-interaction-mode) (rgr/context-help) ad-do-it)
+   ((eq major-mode 'emacs-lisp-mode) (el-context-help) ad-do-it)
+   ((eq major-mode 'lisp-interaction-mode) (el-context-help) ad-do-it)
    (t ad-do-it)))
 
 
 ;; From the configuration of Helmut Eller
 
-(defun helmut/elisp-disassemble (function)
+(defun el-elisp-disassemble (function)
+  "Show disassembly for the function under point, or the calling
+function in the list under point."
   (interactive (list (function-called-at-point)))
   (disassemble function))
 
-(defun helmut/elisp-pp (sexp)
+(defun el-elisp-pp (sexp)
+  "Pretty-print the S-expression into a buffer called *Pp Eval Output*"
   (with-output-to-temp-buffer "*Pp Eval Output*"
     (pp sexp)
     (with-current-buffer standard-output
       (emacs-lisp-mode))))
 
-(defun helmut/elisp-macroexpand (form)
+(defun el-elisp-macroexpand (form)
+  "Invoke 'macroexpand-1' on the expression at point."
   (interactive (list (form-at-point 'sexp)))
-  (helmut/elisp-pp (macroexpand form)))
+  (el-elisp-pp (macroexpand form)))
 
-(defun helmut/elisp-macroexpand-all (form)
+(defun el-elisp-macroexpand-all (form)
+  "Invoke 'macroexpand-all' on the expression at point."
   (interactive (list (form-at-point 'sexp)))
-  (helmut/elisp-pp (cl-macroexpand-all form)))
+  (el-elisp-pp (cl-macroexpand-all form)))
 
-(defun helmut/elisp-push-point-marker ()
-  (require 'etags)
+(defun el-elisp-push-point-marker ()
   (ring-insert find-tag-marker-ring (point-marker)))
 
-(defun helmut/elisp-find-definition (name)
+(defun el-elisp-find-definition (name)
   "Jump to the definition of the function (or variable) at point."
   (interactive (list (thing-at-point 'symbol)))
   (cond (name
@@ -112,10 +115,10 @@ context-help to false"
                                   (goto-char point)
                                   (recenter 1)))))))
            (cond ((fboundp symbol)
-                  (helmut/elisp-push-point-marker)
+                  (el-elisp-push-point-marker)
                   (funcall search 'find-function-noselect symbol))
                  ((boundp symbol)
-                  (helmut/elisp-push-point-marker)
+                  (el-elisp-push-point-marker)
                   (funcall search 'find-variable-noselect symbol))
                  (t
                   (message "Symbol not bound: %S" symbol)))))
@@ -124,17 +127,18 @@ context-help to false"
 
 (defvar el-spice-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c d") 'helmut/elisp-disassemble)
-    (define-key map (kbd "C-c m") 'helmut/elisp-macroexpand)
-    (define-key map (kbd "C-c M") 'helmut/elisp-macroexpand-all)
+    (define-key map (kbd "C-c d") 'el-elisp-disassemble)
+    (define-key map (kbd "C-c m") 'el-elisp-macroexpand)
+    (define-key map (kbd "C-c M") 'el-elisp-macroexpand-all)
     (define-key map (kbd "C-c C-c") 'compile-defun)
     (define-key map (kbd "C-c C-k") 'eval-buffer)
     (define-key map (kbd "C-c C-l") 'load-file)
     (define-key map (kbd "C-c p") 'pp-eval-last-sexp)
-    (define-key map (kbd "M-.") 'helmut/elisp-find-definition)
+    (define-key map (kbd "M-.") 'el-elisp-find-definition)
     (define-key map (kbd "M-,") 'pop-tag-mark)
-    (define-key map (kbd "C-c <") 'list-callers)
-    (define-key map (kbd "C-c h") 'rgr/toggle-context-help)
+    (define-key map (kbd "C-c l") 'list-callers)
+    (define-key map (kbd "C-c <") 'lc-show-package-summary)
+    (define-key map (kbd "C-c h") 'el-toggle-context-help)
     (define-key map (kbd "C-c C-z") 'ielm)
     map))
 
