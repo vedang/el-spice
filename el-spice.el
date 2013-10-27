@@ -7,8 +7,8 @@
 ;; Keywords: configuration
 ;; URL: https://github.com/vedang/el-spice
 ;; Package-Requires: ((thingatpt+)) ; update #2171
-;; Version: DEV
-
+;; Version: 0.2.0
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -21,18 +21,19 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+;;
+;; Commentary:
+;; Refer to installation instructions in the README document.
+;;
 ;;; Code:
 
 (require 'eldoc)
 (require 'thingatpt+)
 (require 'list-callers)
 
-(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
-
-(define-key emacs-lisp-mode-map (kbd "C-c C-z") 'ielm)
 
 ;; From Emacswiki: Better context help
+
 (defun rgr/toggle-context-help()
   "Turn on or off the context help.
 Note that if ON and you hide the help buffer then you need to
@@ -63,13 +64,12 @@ context-help to false"
           (if (boundp  rgr-symbol) (describe-variable rgr-symbol)))))))
 
 (defadvice eldoc-print-current-symbol-info
-  (around eldoc-show-c-tag activate)
+  (around eldoc-show-c-tag disable)
   (cond
    ((eq major-mode 'emacs-lisp-mode) (rgr/context-help) ad-do-it)
    ((eq major-mode 'lisp-interaction-mode) (rgr/context-help) ad-do-it)
    (t ad-do-it)))
 
-(define-key emacs-lisp-mode-map (kbd "C-c h") 'rgr/toggle-context-help)
 
 ;; From the configuration of Helmut Eller
 
@@ -77,13 +77,11 @@ context-help to false"
   (interactive (list (function-called-at-point)))
   (disassemble function))
 
-
 (defun helmut/elisp-pp (sexp)
   (with-output-to-temp-buffer "*Pp Eval Output*"
     (pp sexp)
     (with-current-buffer standard-output
       (emacs-lisp-mode))))
-
 
 (defun helmut/elisp-macroexpand (form)
   (interactive (list (form-at-point 'sexp)))
@@ -96,7 +94,6 @@ context-help to false"
 (defun helmut/elisp-push-point-marker ()
   (require 'etags)
   (ring-insert find-tag-marker-ring (point-marker)))
-
 
 (defun helmut/elisp-find-definition (name)
   "Jump to the definition of the function (or variable) at point."
@@ -124,23 +121,48 @@ context-help to false"
                   (message "Symbol not bound: %S" symbol)))))
         (t (message "No symbol at point"))))
 
-(defvar helmut/elisp-extra-keys
-  '(((kbd "C-c d")   'helmut/elisp-disassemble)
-    ((kbd "C-c m")   'helmut/elisp-macroexpand)
-    ((kbd "C-c M")   'helmut/elisp-macroexpand-all)
-    ((kbd "C-c C-c") 'compile-defun)
-    ((kbd "C-c C-k") 'eval-buffer)
-    ((kbd "C-c C-l") 'load-file)
-    ((kbd "C-c p")   'pp-eval-last-sexp)
-    ((kbd "M-.")     'helmut/elisp-find-definition)
-    ((kbd "M-,")     'pop-tag-mark)
-    ((kbd "C-c <")   'list-callers)))
+
+(defvar el-spice-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c d") 'helmut/elisp-disassemble)
+    (define-key map (kbd "C-c m") 'helmut/elisp-macroexpand)
+    (define-key map (kbd "C-c M") 'helmut/elisp-macroexpand-all)
+    (define-key map (kbd "C-c C-c") 'compile-defun)
+    (define-key map (kbd "C-c C-k") 'eval-buffer)
+    (define-key map (kbd "C-c C-l") 'load-file)
+    (define-key map (kbd "C-c p") 'pp-eval-last-sexp)
+    (define-key map (kbd "M-.") 'helmut/elisp-find-definition)
+    (define-key map (kbd "M-,") 'pop-tag-mark)
+    (define-key map (kbd "C-c <") 'list-callers)
+    (define-key map (kbd "C-c h") 'rgr/toggle-context-help)
+    (define-key map (kbd "C-c C-z") 'ielm)
+    map))
 
 
-(dolist (binding helmut/elisp-extra-keys)
-  (let ((key (eval (car binding))) (val (eval (cadr binding))))
-    (define-key emacs-lisp-mode-map key val)
-    (define-key lisp-interaction-mode-map key val)))
+;;;###autoload
+(define-minor-mode el-spice-mode
+  "Extra spice for emacs lisp programming.
+
+With a prefix argument ARG, enables el-spice mode if ARG is
+positive, and disables it otherwise. If called from Lisp,
+disables the mode if the argument is a non-positive integer, and
+enables the mode otherwise (including if the argument is omitted
+or nil or a positive integer)."
+  :lighter " ElS"
+  :keymap el-spice-mode-map
+  (if el-spice-mode
+      (progn
+        (eldoc-mode +1)
+        (ad-enable-advice 'eldoc-print-current-symbol-info
+                          'around
+                          'eldoc-show-c-tag)
+        (ad-activate 'eldoc-print-current-symbol-info))
+    (progn
+      (eldoc-mode -1)
+      (ad-disable-advice 'eldoc-print-current-symbol-info
+                         'around
+                         'eldoc-show-c-tag)
+      (ad-activate 'eldoc-print-current-symbol-info))))
 
 
 (provide 'el-spice)
