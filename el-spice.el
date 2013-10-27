@@ -6,8 +6,8 @@
 ;; Created on: 26 Oct 2013
 ;; Keywords: configuration
 ;; URL: https://github.com/vedang/el-spice
-;; Package-Requires: ((thingatpt+)) ; update #2171
-;; Version: 0.3.0
+;; Package-Requires: ((thingatpt+ "0")) ; update #2171
+;; Version: 0.2.2
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
