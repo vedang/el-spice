@@ -7,7 +7,7 @@
 ;; Keywords: languages, extensions
 ;; URL: https://github.com/vedang/el-spice
 ;; Package-Requires: ((thingatpt+ "0"))
-;; Version: 0.2.2
+;; Version: 0.3.0-wip
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
