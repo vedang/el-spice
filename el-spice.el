@@ -57,6 +57,8 @@ context-help to false"
   (interactive)
   (let ((rgr-symbol (symbol-at-point)))
     (with-current-buffer (help-buffer)
+      (unless (local-variable-p 'context-help)
+	(set (make-local-variable 'context-help) t))
       (when (and context-help (get-buffer-window (help-buffer)) rgr-symbol)
         (if (fboundp rgr-symbol)
             (describe-function rgr-symbol)
