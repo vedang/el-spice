@@ -53,12 +53,12 @@ manually reshow it. A double toggle will make it reappear."
   "Display function or variable at point in *Help* buffer if visible.
 Default behaviour can be turned off by setting the buffer local
 context-help to false"
-  ;; symbol-at-point http://www.emacswiki.org/cgi-bin/wiki/thingatpt%2B.el
+  ;; tap-symbol-at-point http://www.emacswiki.org/cgi-bin/wiki/thingatpt%2B.el
   (interactive)
-  (let ((rgr-symbol (symbol-at-point)))
+  (let ((rgr-symbol (tap-symbol-at-point)))
     (with-current-buffer (help-buffer)
       (unless (local-variable-p 'context-help)
-	(set (make-local-variable 'context-help) t))
+        (set (make-local-variable 'context-help) t))
       (when (and context-help (get-buffer-window (help-buffer)) rgr-symbol)
         (if (fboundp rgr-symbol)
             (describe-function rgr-symbol)
@@ -90,12 +90,12 @@ function in the list under point."
 
 (defun el-elisp-macroexpand (form)
   "Invoke 'macroexpand-1' on the expression at point."
-  (interactive (list (form-at-point 'sexp)))
+  (interactive (list (tap-form-at-point 'sexp)))
   (el-elisp-pp (macroexpand form)))
 
 (defun el-elisp-macroexpand-all (form)
   "Invoke 'macroexpand-all' on the expression at point."
-  (interactive (list (form-at-point 'sexp)))
+  (interactive (list (tap-form-at-point 'sexp)))
   (el-elisp-pp (cl-macroexpand-all form)))
 
 (defun el-elisp-push-point-marker ()
@@ -103,7 +103,7 @@ function in the list under point."
 
 (defun el-elisp-find-definition (name)
   "Jump to the definition of the function (or variable) at point."
-  (interactive (list (thing-at-point 'symbol)))
+  (interactive (list (tap-thing-at-point 'symbol)))
   (cond (name
          (let ((symbol (intern-soft name))
                (search (lambda (fun sym)
