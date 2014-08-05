@@ -146,6 +146,12 @@ function in the list under point."
     map))
 
 
+(defcustom el-spice-lighter " ElS"
+  "Change this variable to nil if you don't want the el-spice
+  lighter in your modeline."
+  :type '(choice string (const :tag "None" nil)))
+
+
 ;;;###autoload
 (define-minor-mode el-spice-mode
   "Extra spice for emacs lisp programming.
@@ -155,7 +161,7 @@ positive, and disables it otherwise. If called from Lisp,
 disables the mode if the argument is a non-positive integer, and
 enables the mode otherwise (including if the argument is omitted
 or nil or a positive integer)."
-  :lighter " ElS"
+  :lighter el-spice-lighter
   :keymap el-spice-mode-map
   (if el-spice-mode
       (progn
