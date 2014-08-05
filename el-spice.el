@@ -166,6 +166,7 @@ or nil or a positive integer)."
   (if el-spice-mode
       (progn
         (eldoc-mode +1)
+        (setq-local eldoc-minor-mode-string nil)
         (ad-enable-advice 'eldoc-print-current-symbol-info
                           'around
                           'eldoc-show-c-tag)
