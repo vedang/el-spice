@@ -37,40 +37,45 @@
 
 ;;; Code:
 
+(require 'xref)
+
+(defvar lc-seen-nodes) ; used to detect cycles
+(defvar lc-callees)    ; the result list
 
 (defsubst lc-byte-code-constants (bytecode)
   "Access the constant vector of the bytecode-function BYTECODE."
   (aref bytecode 2))
 
 (defsubst lc-node-seen-p (node seen-nodes)
+  "Return t if NODE exists in the SEEN-NODES list."
   (memq node seen-nodes))
 
 (defsubst lc-set-node-seen-p (node seen-nodes)
+  "Add NODE to the list of SEEN-NODES."
   (cons node seen-nodes))
 
 (defun lc-collect-callees (symbol)
   "Return all fbound symbols referenced by the function named SYMBOL."
-  (let ((seen-nodes '())
-        (callees '()))
+  (let ((lc-seen-nodes '())
+        (lc-callees '()))
     (lc-collect-callees-guts (symbol-function symbol))
-    callees))
+    lc-callees))
 
-(defvar seen-nodes) ; used to detect cycles
-(defvar callees)    ; the result list
-
-;; Here we do the actual work. seen-nodes and callees are dynamically
-;; scoped so that we don't need to pass them around.  The code looks a
-;; bit strange because it is tuned for efficiency.  Fbound symbols are
-;; pushed to callees; for conses, vectors, and byte-functions we
-;; recurse; all other objects are ignored.
+;; Here we do the actual work. `lc-seen-nodes' and `lc-callees' are
+;; dynamically scoped so that we don't need to pass them around. The
+;; code looks a bit strange because it is tuned for efficiency. Fbound
+;; symbols are pushed to `lc-callees'; for conses, vectors, and
+;; byte-functions we recurse; all other objects are ignored.
 (defun lc-collect-callees-guts (object)
+  "Internal function to collect callees for OBJECT."
   (cond ((symbolp object)
          (if (fboundp object)
-             (push object callees)))
+             (push object lc-callees)))
         ((or (numberp object) (stringp object)))
-        ((if (lc-node-seen-p object seen-nodes) ; are we in a cycle?
+        ((if (lc-node-seen-p object lc-seen-nodes) ; are we in a cycle?
              t
-           (setq seen-nodes (lc-set-node-seen-p object seen-nodes))
+           (setq lc-seen-nodes
+                 (lc-set-node-seen-p object lc-seen-nodes))
            nil)
          nil)
         ((consp object)
@@ -78,10 +83,11 @@
          (while (consp object)
            (lc-collect-callees-guts (car object))
            (setq object (cdr object))
-           (cond ((lc-node-seen-p object seen-nodes)
+           (cond ((lc-node-seen-p object lc-seen-nodes)
                   (setq object nil))
                  (t
-                  (setq seen-nodes (lc-set-node-seen-p object seen-nodes))))))
+                  (setq lc-seen-nodes
+                        (lc-set-node-seen-p object lc-seen-nodes))))))
         ((vectorp object)
          (let ((len (length object))  (i 0))
            (while (< i len)
@@ -117,12 +123,12 @@ TABLE should be a table returned by `lc-build-callees-table'."
     callers))
 
 (defun lc-find-callers (fsymbol)
-  "Return a list of symbols for callers of the function named FSYMOBLS."
+  "Return a list of symbols for callers of the function named FSYMBOL."
   (lc-callees-rlookup (lc-build-callees-table) fsymbol))
 
-(defun lc-find-callees (symbol)
-  "Return a list of symbols for callees of the function named FSYMOBLS."
-  (lc-collect-callees symbol))
+(defun lc-find-callees (fsymbol)
+  "Return a list of symbols for callees of the function named FSYMBOL."
+  (lc-collect-callees fsymbol))
 
 (defun lc-symbol-prefix-p (prefix symbol)
   "Is PREFIX a prefix of the symbol SYMBOL?"
@@ -167,7 +173,7 @@ Each SYMBOL has the string PACKAGE as prefix."
          (buffer (car r))
          (point (cdr r)))
     (cond (point
-           (elisp-push-point-marker)
+           (xref-push-marker-stack)
            (switch-to-buffer buffer)
            (goto-char point)
            (recenter 1))
@@ -249,7 +255,7 @@ SUMMARY should be a list returned by `lc-package-summary'."
       (switch-to-buffer (current-buffer)))))
 
 (defun lc-read-function-name ()
-  "Read a function name much like C-h f does.  Return a symbol."
+  "Read a function name much like `C-h f' does.  Return a symbol."
   (let* ((default (function-called-at-point))
          (string (completing-read
                   (cond (default

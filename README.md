@@ -11,7 +11,7 @@
    `C-c M-m`   - Macroexpand all
    `C-c C-c` - Compile defun
    `C-c C-k` - Eval buffer
-   `C-c C-l` - Load file
+   `C-c l` - Load file
    `C-c C-p`   - Pretty-print Eval last sexp
    `M-.`     - Find Definition
    `M-,`     - Pop tag mark

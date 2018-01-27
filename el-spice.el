@@ -65,7 +65,8 @@ context-help to false"
             (describe-variable rgr-symbol)))))))
 
 (defadvice eldoc-print-current-symbol-info
-  (around eldoc-show-c-tag disable)
+    (around eldoc-show-c-tag disable)
+  "Print contextual help for emacs-lisp symbols."
   (cond
    ((eq major-mode 'emacs-lisp-mode) (el-context-help) ad-do-it)
    ((eq major-mode 'lisp-interaction-mode) (el-context-help) ad-do-it)
@@ -75,13 +76,12 @@ context-help to false"
 ;; From the configuration of Helmut Eller
 
 (defun el-elisp-disassemble (function)
-  "Show disassembly for the function under point, or the calling
-function in the list under point."
+  "Show disassembly for the FUNCTION under point, or the calling FUNCTION in the list under point."
   (interactive (list (function-called-at-point)))
   (disassemble function))
 
 (defun el-elisp-pp (sexp)
-  "Pretty-print the S-expression into a buffer called *Pp Eval Output*"
+  "Pretty-print the SEXP into a buffer called *Pp Eval Output*."
   (with-output-to-temp-buffer "*Pp Eval Output*"
     (pp sexp)
     (with-current-buffer standard-output
@@ -95,10 +95,7 @@ function in the list under point."
 (defun el-elisp-macroexpand-all (form)
   "Invoke 'macroexpand-all' on the FORM at point."
   (interactive (list (form-at-point 'sexp)))
-  (el-elisp-pp (cl-macroexpand-all form)))
-
-(defun el-elisp-push-point-marker ()
-  (ring-insert find-tag-marker-ring (point-marker)))
+  (el-elisp-pp (macroexpand-all form)))
 
 (defun el-elisp-find-definition (name)
   "Jump to the definition of the function/variable (NAME) at point."
@@ -117,10 +114,10 @@ function in the list under point."
                                   (goto-char point)
                                   (recenter 1)))))))
            (cond ((fboundp symbol)
-                  (el-elisp-push-point-marker)
+                  (xref-push-marker-stack)
                   (funcall search 'find-function-noselect symbol))
                  ((boundp symbol)
-                  (el-elisp-push-point-marker)
+                  (xref-push-marker-stack)
                   (funcall search 'find-variable-noselect symbol))
                  (t
                   (message "Symbol not bound: %S" symbol)))))
@@ -134,7 +131,7 @@ function in the list under point."
     (define-key map (kbd "C-c M-m") 'el-elisp-macroexpand-all)
     (define-key map (kbd "C-c C-c") 'compile-defun)
     (define-key map (kbd "C-c C-k") 'eval-buffer)
-    (define-key map (kbd "C-c C-l") 'load-file)
+    (define-key map (kbd "C-c l") 'load-file)
     (define-key map (kbd "C-c C-p") 'pp-eval-last-sexp)
     (define-key map (kbd "M-.") 'el-elisp-find-definition)
     (define-key map (kbd "M-,") 'pop-tag-mark)
@@ -146,8 +143,7 @@ function in the list under point."
 
 
 (defcustom el-spice-lighter " ElS"
-  "Change this variable to nil if you don't want the el-spice
-  lighter in your modeline."
+  "Change this variable to nil if you don't want the `el-spice' lighter in your modeline."
   :type '(choice string (const :tag "None" nil)))
 
 
