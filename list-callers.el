@@ -37,7 +37,6 @@
 
 ;;; Code:
 
-(require 'thingatpt+)
 
 (defsubst lc-byte-code-constants (bytecode)
   "Access the constant vector of the bytecode-function BYTECODE."
@@ -156,8 +155,8 @@ Each SYMBOL has the string PACKAGE as prefix."
   "Buffer local variable use to restore the window configuration.")
 
 (defun lc-find-function-at-point-other-window (name)
-  "Display the source of the function at point in other window."
-  (interactive (list (tap-thing-at-point 'symbol)))
+  "Display the source of the function-at-point (NAME) in other window."
+  (interactive (list (thing-at-point 'symbol)))
   (unless name
     (error "No symbol at point"))
   (let* ((symbol (intern-soft name))

@@ -6,8 +6,8 @@
 ;; Created on: 26 Oct 2013
 ;; Keywords: languages, extensions
 ;; URL: https://github.com/vedang/el-spice
-;; Package-Requires: ((thingatpt+ "0"))
 ;; Version: 0.3.0-wip
+;; Updated on: 27 Jan 2018
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 (require 'eldoc)
 (require 'etags)
-(require 'thingatpt+)
+(require 'thingatpt)
 (require 'list-callers)
 
 
@@ -53,9 +53,8 @@ manually reshow it. A double toggle will make it reappear."
   "Display function or variable at point in *Help* buffer if visible.
 Default behaviour can be turned off by setting the buffer local
 context-help to false"
-  ;; tap-symbol-at-point http://www.emacswiki.org/cgi-bin/wiki/thingatpt%2B.el
   (interactive)
-  (let ((rgr-symbol (tap-symbol-at-point)))
+  (let ((rgr-symbol (symbol-at-point)))
     (with-current-buffer (help-buffer)
       (unless (local-variable-p 'context-help)
         (set (make-local-variable 'context-help) t))
@@ -89,21 +88,21 @@ function in the list under point."
       (emacs-lisp-mode))))
 
 (defun el-elisp-macroexpand (form)
-  "Invoke 'macroexpand-1' on the expression at point."
-  (interactive (list (tap-form-at-point 'sexp)))
+  "Invoke 'macroexpand-1' on the FORM at point."
+  (interactive (list (form-at-point 'sexp)))
   (el-elisp-pp (macroexpand form)))
 
 (defun el-elisp-macroexpand-all (form)
-  "Invoke 'macroexpand-all' on the expression at point."
-  (interactive (list (tap-form-at-point 'sexp)))
+  "Invoke 'macroexpand-all' on the FORM at point."
+  (interactive (list (form-at-point 'sexp)))
   (el-elisp-pp (cl-macroexpand-all form)))
 
 (defun el-elisp-push-point-marker ()
   (ring-insert find-tag-marker-ring (point-marker)))
 
 (defun el-elisp-find-definition (name)
-  "Jump to the definition of the function (or variable) at point."
-  (interactive (list (tap-thing-at-point 'symbol)))
+  "Jump to the definition of the function/variable (NAME) at point."
+  (interactive (list (thing-at-point 'symbol)))
   (cond (name
          (let ((symbol (intern-soft name))
                (search (lambda (fun sym)
