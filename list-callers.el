@@ -39,8 +39,10 @@
 
 (require 'xref)
 
-(defvar lc-seen-nodes) ; used to detect cycles
-(defvar lc-callees)    ; the result list
+(defvar lc-seen-nodes '()
+  "Internal variable used to detect cycles.")
+(defvar lc-callees '()
+  "Internal variable used to maintain the result list.")
 
 (defsubst lc-byte-code-constants (bytecode)
   "Access the constant vector of the bytecode-function BYTECODE."
@@ -54,13 +56,6 @@
   "Add NODE to the list of SEEN-NODES."
   (cons node seen-nodes))
 
-(defun lc-collect-callees (symbol)
-  "Return all fbound symbols referenced by the function named SYMBOL."
-  (let ((lc-seen-nodes '())
-        (lc-callees '()))
-    (lc-collect-callees-guts (symbol-function symbol))
-    lc-callees))
-
 ;; Here we do the actual work. `lc-seen-nodes' and `lc-callees' are
 ;; dynamically scoped so that we don't need to pass them around. The
 ;; code looks a bit strange because it is tuned for efficiency. Fbound
@@ -69,17 +64,19 @@
 (defun lc-collect-callees-guts (object)
   "Internal function to collect callees for OBJECT."
   (cond ((symbolp object)
-         (if (fboundp object)
-             (push object lc-callees)))
+         (when (fboundp object)
+           (push object lc-callees)))
+
         ((or (numberp object) (stringp object)))
+
         ((if (lc-node-seen-p object lc-seen-nodes) ; are we in a cycle?
              t
            (setq lc-seen-nodes
                  (lc-set-node-seen-p object lc-seen-nodes))
-           nil)
-         nil)
+           nil))
+
         ((consp object)
-         ;; iterate over lists ot save stack space
+         ;; iterate over lists to save stack space
          (while (consp object)
            (lc-collect-callees-guts (car object))
            (setq object (cdr object))
@@ -88,19 +85,29 @@
                  (t
                   (setq lc-seen-nodes
                         (lc-set-node-seen-p object lc-seen-nodes))))))
+
         ((vectorp object)
          (let ((len (length object))  (i 0))
            (while (< i len)
              (lc-collect-callees-guts (aref object i))
              (setq i (1+ i)))))
+
         ((byte-code-function-p object)
          (lc-collect-callees-guts (lc-byte-code-constants object)))
+
         ((or (bool-vector-p object) (char-table-p object)
              (bufferp object) (framep object) (subrp object)
              (overlayp object) (markerp object) (windowp object)
-             (processp object))
-         nil)
+             (processp object) (hash-table-p object)))
+
         (t (error "Unexpected type: %S" object))))
+
+(defun lc-collect-callees (fsymbol)
+  "Return all fbound symbols referenced by the function named FSYMBOL."
+  (let ((lc-seen-nodes '())
+        (lc-callees '()))
+    (lc-collect-callees-guts (symbol-function fsymbol))
+    lc-callees))
 
 (defun lc-build-callees-table ()
   "Return an alist ((SYMBOL . CALLEES) ...) for all fbound symbols."
@@ -186,9 +193,9 @@ Each SYMBOL has the string PACKAGE as prefix."
     (define-key map "q" 'lc-quit)
     map))
 
-(defun lc-display-callers (callers)
-  "Display a buffer to browse a list of CALLERS."
-  (with-current-buffer (get-buffer-create "*callers*")
+(defun lc-display-callers (fsymbol callers)
+  "For the function FSYMBOL, display a buffer to browse a list of CALLERS."
+  (with-current-buffer (get-buffer-create (format "*lc-callers: %s*" fsymbol))
     (setq buffer-read-only nil)
     (erase-buffer)
     (set (make-local-variable 'lc-old-window-config)
@@ -237,7 +244,7 @@ SUMMARY should be a list returned by `lc-package-summary'."
   (message "Building summary...")
   (let ((summary (lc-sort-summary (lc-package-summary package))))
     (message nil)
-    (with-current-buffer (get-buffer-create "*package summary*")
+    (with-current-buffer (get-buffer-create "*lc package summary*")
       (erase-buffer)
       (emacs-lisp-mode)
       (setq truncate-lines t)
@@ -277,7 +284,7 @@ If called non-interactively display the callers of SYMBOL."
         (t
          (let* ((callers (lc-find-callers symbol))
                 (callers (sort callers #'string<)))
-           (lc-display-callers callers)))))
+           (lc-display-callers symbol callers)))))
 
 (let ((byte-compile-warnings '()))
   (mapc #'byte-compile
