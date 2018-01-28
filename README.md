@@ -6,19 +6,21 @@
  * adds functions to provide contextual help. Just type `C-c C-?` (Richard Riley)
  * adds helper functions for debugging and reading emacs-lisp code (Helmut Eller)
 
-   `C-c C-d`   - Disassemble elisp
-   `C-c C-m`   - Macroexpand elisp
-   `C-c M-m`   - Macroexpand all
-   `C-c C-c` - Compile defun
-   `C-c C-k` - Eval buffer
-   `C-c l` - Load file
-   `C-c C-p`   - Pretty-print Eval last sexp
-   `M-.`     - Find Definition
-   `M-,`     - Pop tag mark
-   `C-c C-l`   - List the callers of this function
-   `C-c <`   - Show function callers and callee summary for a package
-   `C-c C-?`   - Show contextual help
-   `C-c C-z` - easy-key-binding for \*ielm\*
+   | Key Binding | Functionality |
+   | ----------- | ------------- | 
+   | `C-c C-d` | Disassemble elisp |
+   | `C-c C-m` | Macroexpand elisp |
+   | `C-c M-m` | Macroexpand all |
+   | `C-c C-c` | Compile defun |
+   | `C-c C-k` | Eval buffer |
+   | `C-c l` | Load file |
+   | `C-c C-p` | Pretty-print Eval last sexp |
+   | `M-.` | Find Definition |
+   | `M-,` | Pop tag mark (Jump back) |
+   | `C-c C-l` | List the callers of this function |
+   | `C-c <` | Show function callers and callee summary for a package |
+   | `C-c C-?` | Show contextual help |
+   | `C-c C-z` | easy-key-binding for \*ielm\* |
 
 # How to Install
 
