@@ -1,13 +1,13 @@
 ;;; el-spice.el --- Extra spice for emacs lisp programming
 ;;
-;; Copyright (C) 2013 Helmut Eller, Richard Riley, Vedang Manerikar
+;; Copyright (C) 2013-2018 Helmut Eller, Richard Riley, Vedang Manerikar
 ;;
 ;; Author: Vedang Manerikar <vedang.manerikar@gmail.com>
 ;; Created on: 26 Oct 2013
 ;; Keywords: languages, extensions
 ;; URL: https://github.com/vedang/el-spice
-;; Version: 0.3.0-wip
-;; Updated on: 27 Jan 2018
+;; Version: 0.3.0
+;; Updated on: 28 Jan 2018
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
