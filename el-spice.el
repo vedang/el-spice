@@ -34,6 +34,11 @@
 (require 'list-callers)
 
 
+(defun el-byte-compile-and-load-buffer ()
+  "Run `byte-compile-file' on this buffer, load the file on completion."
+  (interactive)
+  (byte-compile-file (buffer-file-name) t))
+
 ;; From Emacswiki: Better context help (Author: Richard Riley)
 
 (defun el-toggle-context-help()
@@ -130,7 +135,7 @@ context-help to false"
     (define-key map (kbd "C-c C-m") 'el-elisp-macroexpand)
     (define-key map (kbd "C-c M-m") 'el-elisp-macroexpand-all)
     (define-key map (kbd "C-c C-c") 'compile-defun)
-    (define-key map (kbd "C-c C-k") 'eval-buffer)
+    (define-key map (kbd "C-c C-k") 'el-byte-compile-and-load-buffer)
     (define-key map (kbd "C-c l") 'load-file)
     (define-key map (kbd "C-c C-p") 'pp-eval-last-sexp)
     (define-key map (kbd "M-.") 'el-elisp-find-definition)
